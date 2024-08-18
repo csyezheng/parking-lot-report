@@ -1,5 +1,5 @@
-// src/pages/DashboardPage.js
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import axiosInstance from '../axiosInstance'; // Use the custom Axios instance
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import SummaryCard from '../components/SummaryCard';
@@ -8,45 +8,42 @@ import RevenueBarChart from '../components/RevenueBarChart';
 import './DashboardPage.css'
 
 const DashboardPage = () => {
-  // Mock data for the components
-  const summaryData = {
-    totalRevenue: '$150,000',
-    totalLots: 10,
-    totalCapacity: 2000,
-    totalOccupied: 1600,
-  };
+  const [summaryData, setSummaryData] = useState(null);
+  const [revenueLineData, setRevenueLineData] = useState([]);
+  const [revenueBarData, setRevenueBarData] = useState([]);
 
-  const revenueLineData = [
-    { month: 'January', revenue: 12000 },
-    { month: 'February', revenue: 13000 },
-    { month: 'March', revenue: 12500 },
-    { month: 'April', revenue: 12000 },
-    { month: 'May', revenue: 13000 },
-    { month: 'June', revenue: 12500 },
-    { month: 'July', revenue: 12000 },
-    { month: 'August', revenue: 13000 },
-    { month: 'September', revenue: 12500 },
-    { month: 'October', revenue: 12000 },
-    { month: 'November', revenue: 13000 },
-    { month: 'December ', revenue: 12500 },
-    // Add more data for each month
-  ];
+  useEffect(() => {
+    // Fetch summary data
+    axiosInstance.get('/api/summary/')
+      .then(response => {
+        setSummaryData(response.data);
+      })
+      .catch(error => {
+        console.error("There was an error fetching the summary data!", error);
+      });
 
-  const revenueBarData = [
-    { lotName: 'Main Street Parking', revenue: 12000 },
-    { lotName: 'Riverside Parking', revenue: 15000 },
-    { lotName: 'Downtown Parking', revenue: 13000 },
-    { lotName: 'Main Street Parking', revenue: 12000 },
-    { lotName: 'Riverside Parking', revenue: 15000 },
-    { lotName: 'Downtown Parking', revenue: 13000 },
-    { lotName: 'Main Street Parking', revenue: 12000 },
-    { lotName: 'Riverside Parking', revenue: 15000 },
-    { lotName: 'Downtown Parking', revenue: 13000 },
-    { lotName: 'Main Street Parking', revenue: 12000 },
-    { lotName: 'Riverside Parking', revenue: 15000 },
-    { lotName: 'Downtown Parking', revenue: 13000 },
-    // Add more parking lots as needed
-  ];
+    // Fetch revenue line graph data
+    axiosInstance.get('/api/revenue-line/')
+      .then(response => {
+        setRevenueLineData(response.data);
+      })
+      .catch(error => {
+        console.error("There was an error fetching the revenue line data!", error);
+      });
+
+    // Fetch revenue bar chart data
+    axiosInstance.get('/api/revenue-bar/')
+      .then(response => {
+        setRevenueBarData(response.data);
+      })
+      .catch(error => {
+        console.error("There was an error fetching the revenue bar data!", error);
+      });
+  }, []);
+
+  if (!summaryData) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="App">
@@ -59,7 +56,6 @@ const DashboardPage = () => {
                 <SummaryCard title="Total Revenue" value={summaryData.totalRevenue} />
                 <SummaryCard title="Total Parking Lots" value={summaryData.totalLots} />
                 <SummaryCard title="Total Capacity" value={summaryData.totalCapacity} />
-                <SummaryCard title="Total Occupied" value={summaryData.totalOccupied} />
             </div>
 
             <div className='dashboard-revenue-linegraph'>
