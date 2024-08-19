@@ -17,6 +17,9 @@ const Header = () => {
           <li>
             <Link to="/parking-lot">Parking Lot</Link>
           </li>
+          <li>
+            <Link to="/import">Batch Import</Link>
+          </li>
         </ul>
       </nav>
     </header>
