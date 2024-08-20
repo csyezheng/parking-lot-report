@@ -10,11 +10,16 @@ import 'react-datepicker/dist/react-datepicker.css';
 import './DashboardPage.css'
 
 const DashboardPage = () => {
+  const currentDate = new Date();
+  // Compute default values
+  // getMonth() return zero-based value where zero indicates the first month of the year
+  const lastMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+  
   const [summaryData, setSummaryData] = useState(null);
   const [revenueLineData, setRevenueLineData] = useState([]);
   const [revenueBarData, setRevenueBarData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(lastMonth);
 
   useEffect(() => {
     // Fetch summary data

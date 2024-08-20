@@ -9,7 +9,7 @@ const PeakHoursChart = ({ data }) => {
     datasets: [
       {
         label: 'Number of Cars Parked',
-        data: data.map(d => d.occupancy),
+        data: data.map(d => d.occupancy_rate),
         backgroundColor: 'rgba(255, 99, 132, 0.6)',
         borderColor: 'rgba(255, 99, 132, 1)',
         borderWidth: 1,

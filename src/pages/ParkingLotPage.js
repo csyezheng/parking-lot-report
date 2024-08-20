@@ -11,13 +11,21 @@ import ParkingLotDropdown from '../components/ParkingLotDropdown';
 import './ParkingLotPage.css';
 
 const ParkingLotPage = () => {
+
+  const currentDate = new Date();
+  // Compute default values
+  // getMonth() return zero-based value where zero indicates the first month of the year
+  const lastMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).toISOString().substr(0, 7);
+  const yesterday = new Date(currentDate.setDate(currentDate.getDate() - 1)).toISOString().substr(0, 10);
+  const currentYear = currentDate.getFullYear().toString();
+
   const [parkingLots, setParkingLots] = useState([]);
   const [selectedLotId, setSelectedLotId] = useState('');
 
-  const [selectedHistoricalOccupancyMonth, setSelectedHistoricalOccupancyMonth] = useState('');
-  const [selectedPeakHoursDate, setSelectedPeakHoursDate] = useState('');
-  const [selectedRevenueGeneratedMonth, setSelectedRevenueGeneratedMonth] = useState('');
-  const [selectedTotalRevenueYear, setSelectedTotalRevenueYear] = useState('');
+  const [selectedHistoricalOccupancyMonth, setSelectedHistoricalOccupancyMonth] = useState(lastMonth);
+  const [selectedPeakHoursDate, setSelectedPeakHoursDate] = useState(yesterday);
+  const [selectedRevenueGeneratedMonth, setSelectedRevenueGeneratedMonth] = useState(lastMonth);
+  const [selectedTotalRevenueYear, setSelectedTotalRevenueYear] = useState(currentYear);
 
   const [occupancyData, setOccupancyData] = useState([]);
   const [peakHoursData, setPeakHoursData] = useState([]);
@@ -26,7 +34,13 @@ const ParkingLotPage = () => {
 
   useEffect(() => {
     axios.get('/api/parking-lots/')
-      .then(response => setParkingLots(response.data))
+      .then(response => {
+        const lots = response.data;
+        setParkingLots(lots);
+        if (lots.length > 0) {
+          setSelectedLotId(lots[0].id); // Set first parking lot as default
+        }
+      })
       .catch(error => console.error('Error fetching parking lots:', error));
   }, []);
 
@@ -79,6 +93,28 @@ const ParkingLotPage = () => {
 
           {selectedLotId && (
             <>
+                <div className="chart-container">
+                  <h3>Revenue Generated</h3>
+                  <div className="filter-container">
+                  <label>
+                    Revenue Generated - Select Month:
+                    <input type="month" value={selectedRevenueGeneratedMonth} onChange={handleRevenueGeneratedMonthChange} />
+                  </label>
+                </div>
+                  <ParkingLotRevenueChart data={revenueData} />
+                </div>
+
+                <div className="chart-container">
+                  <h3>Total Revenue Per Month</h3>
+                  <div className="filter-container">
+                  <label>
+                    Total Revenue Per Month - Select Year:
+                    <input type="number" value={selectedTotalRevenueYear} onChange={handleTotalRevenueYearChange} placeholder="YYYY" />
+                  </label>
+                </div>
+                  <ParkingLotRevenueLineGraph data={monthlyRevenueData} />
+                </div>
+
               <div className="charts">
                 <div className="chart-container">
                   <h3>Historical Occupancy</h3>
@@ -102,27 +138,6 @@ const ParkingLotPage = () => {
                   <PeakHoursChart data={peakHoursData} />
                 </div>
 
-                <div className="chart-container">
-                  <h3>Revenue Generated</h3>
-                  <div className="filter-container">
-                  <label>
-                    Revenue Generated - Select Month:
-                    <input type="month" value={selectedRevenueGeneratedMonth} onChange={handleRevenueGeneratedMonthChange} />
-                  </label>
-                </div>
-                  <ParkingLotRevenueChart data={revenueData} />
-                </div>
-
-                <div className="chart-container">
-                  <h3>Total Revenue Per Month</h3>
-                  <div className="filter-container">
-                  <label>
-                    Total Revenue Per Month - Select Year:
-                    <input type="number" value={selectedTotalRevenueYear} onChange={handleTotalRevenueYearChange} placeholder="YYYY" />
-                  </label>
-                </div>
-                  <ParkingLotRevenueLineGraph data={monthlyRevenueData} />
-                </div>
               </div>
             </>
           )}
