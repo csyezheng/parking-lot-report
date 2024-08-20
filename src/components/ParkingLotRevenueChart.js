@@ -9,7 +9,7 @@ const ParkingLotRevenueChart = ({ data }) => {
     datasets: [
       {
         label: 'Revenue Generated',
-        data: data.map(d => d.revenue), // Revenue data
+        data: data.map(d => d.total_revenue), // Revenue data
         fill: false,
         borderColor: 'rgb(54, 162, 235)',
         tension: 0.1,

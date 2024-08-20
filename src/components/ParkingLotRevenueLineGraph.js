@@ -10,7 +10,7 @@ const ParkingLotRevenueLineGraph = ({ data }) => {
           <XAxis dataKey="month" />
           <YAxis />
           <Tooltip />
-          <Line type="monotone" dataKey="revenue" stroke="#8884d8" />
+          <Line type="monotone" dataKey="total_revenue" stroke="#8884d8" />
         </LineChart>
       </ResponsiveContainer>
     </div>

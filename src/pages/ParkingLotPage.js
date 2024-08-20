@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import ParkingLotSummary from '../components/ParkingLotSummary';
@@ -7,60 +8,62 @@ import PeakHoursChart from '../components/PeakHoursChart';
 import ParkingLotRevenueChart from '../components/ParkingLotRevenueChart';
 import ParkingLotRevenueLineGraph from '../components/ParkingLotRevenueLineGraph';
 import ParkingLotDropdown from '../components/ParkingLotDropdown';
-import './ParkingLotPage.css'; // Import the CSS file
+import './ParkingLotPage.css';
 
 const ParkingLotPage = () => {
+  const [parkingLots, setParkingLots] = useState([]);
   const [selectedLotId, setSelectedLotId] = useState('');
 
-  // Mock data for parking lots
-  const parkingLots = [
-    { id: '1', name: 'Main Street Parking' },
-    { id: '2', name: 'Riverside Parking' },
-    { id: '3', name: 'Downtown Parking' }
-  ];
+  const [selectedHistoricalOccupancyMonth, setSelectedHistoricalOccupancyMonth] = useState('');
+  const [selectedPeakHoursDate, setSelectedPeakHoursDate] = useState('');
+  const [selectedRevenueGeneratedMonth, setSelectedRevenueGeneratedMonth] = useState('');
+  const [selectedTotalRevenueYear, setSelectedTotalRevenueYear] = useState('');
 
-  // Mock data for different parking lots
-  const parkingLotData = {
-    '1': {
-      summary: {
-        lotName: 'Main Street Parking',
-        location: '123 Main St',
-        totalCapacity: 100,
-        currentOccupancy: 75,
-      },
-      historicalOccupancy: [
-        { date: '2024-08-01', occupancy: 60 },
-        { date: '2024-08-02', occupancy: 70 },
-        { date: '2024-08-03', occupancy: 65 },
-      ],
-      peakHours: [
-        { hour: '08:00', occupancy: 50 },
-        { hour: '12:00', occupancy: 70 },
-        { hour: '18:00', occupancy: 90 },
-      ],
-      revenueData: [
-        { date: '2024-08-01', revenue: 500 },
-        { date: '2024-08-02', revenue: 600 },
-        { date: '2024-08-03', revenue: 550 },
-      ],
-      monthlyRevenueData: [
-        { month: 'January', revenue: 12000 },
-        { month: 'February', revenue: 13000 },
-        // more months...
-      ],
-    },
-    // Add similar data for other lots with ids '2' and '3'
-    // For simplicity, I'm adding the same data for other lots here
-    '2': { /* similar data */ },
-    '3': { /* similar data */ },
-  };
+  const [occupancyData, setOccupancyData] = useState([]);
+  const [peakHoursData, setPeakHoursData] = useState([]);
+  const [revenueData, setRevenueData] = useState([]);
+  const [monthlyRevenueData, setMonthlyRevenueData] = useState([]);
 
-  const handleLotChange = (lotId) => {
-    setSelectedLotId(lotId);
-  };
+  useEffect(() => {
+    axios.get('/api/parking-lots/')
+      .then(response => setParkingLots(response.data))
+      .catch(error => console.error('Error fetching parking lots:', error));
+  }, []);
 
-  const selectedLot = parkingLotData[selectedLotId] || {};
-  
+  useEffect(() => {
+    if (selectedLotId) {
+      // Fetch Historical Occupancy
+      axios.get(`/api/parking-lot/${selectedLotId}/historical-occupancy/`, {
+        params: { month: selectedHistoricalOccupancyMonth }
+      }).then(response => setOccupancyData(response.data))
+        .catch(error => console.error('Error fetching historical occupancy:', error));
+
+      // Fetch Peak Hours
+      axios.get(`/api/parking-lot/${selectedLotId}/peak-hours/`, {
+        params: { date: selectedPeakHoursDate }
+      }).then(response => setPeakHoursData(response.data))
+        .catch(error => console.error('Error fetching peak hours:', error));
+
+      // Fetch Revenue Data
+      axios.get(`/api/parking-lot/${selectedLotId}/revenue/`, {
+        params: { month: selectedRevenueGeneratedMonth }
+      }).then(response => setRevenueData(response.data))
+        .catch(error => console.error('Error fetching revenue data:', error));
+
+      // Fetch Monthly Revenue Data
+      axios.get(`/api/parking-lot/${selectedLotId}/monthly-revenue/`, {
+        params: { year: selectedTotalRevenueYear }
+      }).then(response => setMonthlyRevenueData(response.data))
+        .catch(error => console.error('Error fetching monthly revenue:', error));
+    }
+  }, [selectedLotId, selectedHistoricalOccupancyMonth, selectedPeakHoursDate, selectedRevenueGeneratedMonth, selectedTotalRevenueYear]);
+
+  const handleLotChange = (lotId) => setSelectedLotId(lotId);
+  const handleHistoricalOccupancyMonthChange = (e) => setSelectedHistoricalOccupancyMonth(e.target.value);
+  const handlePeakHoursDateChange = (e) => setSelectedPeakHoursDate(e.target.value);
+  const handleRevenueGeneratedMonthChange = (e) => setSelectedRevenueGeneratedMonth(e.target.value);
+  const handleTotalRevenueYearChange = (e) => setSelectedTotalRevenueYear(e.target.value);
+
   return (
     <div className="App">
       <Header />
@@ -76,32 +79,49 @@ const ParkingLotPage = () => {
 
           {selectedLotId && (
             <>
-              <ParkingLotSummary
-                lotName={selectedLot.summary?.lotName}
-                location={selectedLot.summary?.location}
-                totalCapacity={selectedLot.summary?.totalCapacity}
-                currentOccupancy={selectedLot.summary?.currentOccupancy}
-              />
-
               <div className="charts">
                 <div className="chart-container">
                   <h3>Historical Occupancy</h3>
-                  <HistoricalOccupancyChart data={selectedLot.historicalOccupancy} />
+                  <div className="filter-container">
+                  <label>
+                    Historical Occupancy - Select Month:
+                    <input type="month" value={selectedHistoricalOccupancyMonth} onChange={handleHistoricalOccupancyMonthChange} />
+                  </label>
+                </div>
+                  <HistoricalOccupancyChart data={occupancyData} />
                 </div>
 
                 <div className="chart-container">
                   <h3>Peak Hours</h3>
-                  <PeakHoursChart data={selectedLot.peakHours} />
+                  <div className="filter-container">
+                  <label>
+                    Peak Hours - Select Date:
+                    <input type="date" value={selectedPeakHoursDate} onChange={handlePeakHoursDateChange} />
+                  </label>
+                </div>
+                  <PeakHoursChart data={peakHoursData} />
                 </div>
 
                 <div className="chart-container">
                   <h3>Revenue Generated</h3>
-                  <ParkingLotRevenueChart data={selectedLot.revenueData} />
+                  <div className="filter-container">
+                  <label>
+                    Revenue Generated - Select Month:
+                    <input type="month" value={selectedRevenueGeneratedMonth} onChange={handleRevenueGeneratedMonthChange} />
+                  </label>
+                </div>
+                  <ParkingLotRevenueChart data={revenueData} />
                 </div>
 
                 <div className="chart-container">
                   <h3>Total Revenue Per Month</h3>
-                  <ParkingLotRevenueLineGraph data={selectedLot.monthlyRevenueData} />
+                  <div className="filter-container">
+                  <label>
+                    Total Revenue Per Month - Select Year:
+                    <input type="number" value={selectedTotalRevenueYear} onChange={handleTotalRevenueYearChange} placeholder="YYYY" />
+                  </label>
+                </div>
+                  <ParkingLotRevenueLineGraph data={monthlyRevenueData} />
                 </div>
               </div>
             </>
